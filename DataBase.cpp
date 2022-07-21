@@ -5,17 +5,6 @@
 #include "DataBase.h"
 
 DataBase::DataBase() {
-///reading the names of the files from the names file.
-///reading all the files form the list and saving them in a map.
-
-//char* fileContent = "this is very good practice!";
-//FileInfo fileInfo;
-//strcpy(fileInfo.name , "12345.cube");
-//strcpy(fileInfo.owner , "erer__popo");
-//fileInfo.length = strlen(fileContent) + 1;
-//fileInfo.isChanged = true;
-//this->dataBase.insert(pair<FileInfo , string>(fileInfo , fileContent));
-
     ifstream infoFile(DB_PATH + DB_infoFile, ios::binary);
     if (!infoFile)throw "cant open info file!";
     FileInfo fileInfo;
@@ -121,6 +110,7 @@ int DataBase::read(FileProp &fp) const {
 }
 
 int DataBase::write(const FileProp &fp) {
+    //finds the iterator contains the needed information, and makes sure the owner is
     auto it = find_if(this->dataBase.begin(), this->dataBase.end(),
                       [=](const pair<FileInfo, string> &p) -> bool {
                           return *propToInfo(fp, 0) == p.first;
