@@ -84,6 +84,13 @@ public:
     int creat(const FileProp &fp);
 
     /**
+     * deleting an object from the database.
+     * @param fp the object to delete.
+     * @return 0 if the operation succeeded.
+     */
+    int deleteObj(const FileProp &fp);
+
+    /**
      * prints the database.
      */
     void printDB();

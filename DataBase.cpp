@@ -65,14 +65,6 @@ int DataBase::writeToFile(const char *name, const char *content) const {
     return 0;
 }
 
-int DataBase::creat(const FileProp &fp) {
-
-    if (any_of(this->dataBase.begin(), this->dataBase.end(),
-               [&fp](pair<FileInfo, string> p) { return strcmp(p.first.name, fp.fileName) == 0; }))
-        throw "file already exits in the database! abort adding!!";
-    this->dataBase.insert(pair<FileInfo, string>(*propToInfo(fp, true), fp.fileContent));
-    return 0;
-}
 
 void DataBase::printDB() {
     int i = 0;
@@ -99,6 +91,15 @@ DataBase::FileInfo *DataBase::propToInfo(const FileProp &fp, const bool &isCreat
 
 }
 
+int DataBase::creat(const FileProp &fp) {
+    if (any_of(this->dataBase.begin(), this->dataBase.end(),
+               [&fp](pair<FileInfo, string> p) { return strcmp(p.first.name, fp.fileName) == 0; }))
+        throw "file already exits in the database! abort adding!!";
+    this->dataBase.insert(pair<FileInfo, string>(*propToInfo(fp, true), fp.fileContent));
+    return 0;
+}
+
+
 int DataBase::read(FileProp &fp) const {
     auto it = find_if(this->dataBase.begin(), this->dataBase.end(),
                       [=](const pair<FileInfo, string> &p) -> bool {
@@ -118,6 +119,17 @@ int DataBase::write(const FileProp &fp) {
     if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
     this->dataBase.erase(it);
     creat(fp);
+    return 0;
+}
+
+int DataBase::deleteObj(const FileProp &fp) {
+    //finds the iterator contains the needed information, and makes sure the owner is
+    auto it = find_if(this->dataBase.begin(), this->dataBase.end(),
+                      [=](const pair<FileInfo, string> &p) -> bool {
+                          return *propToInfo(fp, 0) == p.first;
+                      });
+    if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
+    this->dataBase.erase(it);
     return 0;
 }
 
