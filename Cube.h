@@ -14,20 +14,14 @@ public:
     /**
      * the main function of this layer and its only endpoint for the api of the data layer.
      * @param state the state to make the changes on.
-     * @param op  the operation to make.
+     * @param operation  the operation to make.
      * @return 0 if succeeded and 1 if not.
      */
-    static int cubeOperation(char *state, char *op);
-
-    static const char* DEFAULT_CUBE;
+    static int cubeOperation(char *state,const char *operation);
+    static const int CUBE_STATE_SIZE = 54;
+    static const char DEFAULT_CUBE[CUBE_STATE_SIZE];
 
 private:
-    /**
-     * the ability to escape the input to this layer.
-     * @param op
-     * @return not implemented yet. writen for farther extension.
-     */
-    static char *escapedOperation(char *op);
 
     /**
      * make use of both the helper functions and performs a complete move of the cube.

@@ -4,15 +4,14 @@
 
 #include "Cube.h"
 
-int Cube::cubeOperation(char *state, char *op) {
-    char *escapedOp = escapedOperation(op);
-    for (int i = 0; i < strlen(escapedOp); ++i) {
-        rotateCube(state, move(escapedOp[i]));
+int Cube::cubeOperation(char *state,const char *operation) {
+    for (int i = 0; i < strlen(operation); ++i) {
+        rotateCube(state, move(operation[i]));
     }
     return 0;
 }
 
-const char* Cube::DEFAULT_CUBE = "yyyyyyyy.rrrrrrrr.bbbbbbbb.oooooooo.gggggggg.wwwwwwww";
+const char Cube::DEFAULT_CUBE[54] = "yyyyyyyy.rrrrrrrr.bbbbbbbb.oooooooo.gggggggg.wwwwwwww";
 
 int Cube::edgeMovement[][4] = {
         {9,  18, 27, 36},
@@ -90,6 +89,3 @@ int Cube::move(const char &move) {
     }
 }
 
-char *Cube::escapedOperation(char *op) {
-    return op;
-}

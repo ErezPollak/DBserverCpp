@@ -6,22 +6,35 @@
 #define DBSERVERCPP_FILEPROP_H
 
 # include <iostream>
+
 using namespace std;
 
-
-const int NAME_SIZE = 50;
-const int OWNERR_SIZE = 50;
-const int CONTENT_SIZE = 100;
+const static int NAME_SIZE = 50;
+const static int OWNER_SIZE = 50;
+const static int CONTENT_SIZE = 100;
 
 class FileProp {
 
+    char fileName[NAME_SIZE] = {0};
+    char fileOwner[OWNER_SIZE] = {0};
+    char fileContent[CONTENT_SIZE] = {0};
+
 public:
+    const char *getFileContent() const;
 
-    char fileName[NAME_SIZE];
-    char fileOwner[OWNERR_SIZE];
-    char fileContent[CONTENT_SIZE];
+    FileProp* setFileName(const char* name);
 
-    friend ostream& operator<<(ostream& os , const FileProp& f);
+    FileProp* setFileOwner(const char* owner);
+
+    FileProp* setFileContent(const char* content);
+
+    const char *getFileName() const;
+
+    const char *getFileOwner() const;
+
+    char *getFileContentNonConst();
+
+    friend ostream &operator<<(ostream &os, const FileProp &f);
 
 };
 

@@ -20,7 +20,6 @@ DataBase::DataBase() {
         }
     }
     infoFile.close();
-    //if (!infoFile.good())throw "problem during reading info file!";
 }
 
 int DataBase::readFromFile(const char *name, char *content, int &length) const {
@@ -66,7 +65,7 @@ int DataBase::writeToFile(const char *name, const char *content) const {
 }
 
 
-void DataBase::printDB() {
+void DataBase::printDB() const {
     int i = 0;
     for_each(this->dataBase.begin(), this->dataBase.end(),
              [i](pair<FileInfo, string> p) mutable -> void {
@@ -80,41 +79,48 @@ void DataBase::printDB() {
     cout << endl;
 }
 
-DataBase::FileInfo *DataBase::propToInfo(const FileProp &fp, const bool &isCreated) const {
-    FileInfo *fileInfo = new FileInfo();
-    strncpy(fileInfo->name, fp.fileName, NAME_SIZE);
-    strncpy(fileInfo->owner, fp.fileOwner, OWNERR_SIZE);
-    fileInfo->length = strlen(fp.fileContent) + 1;
-    fileInfo->isChanged = isCreated;
 
-    return fileInfo;
+FileProp * DataBase::returnDBState(int &size) const {
+    size = dataBase.size();
+    FileProp * fileProps = new FileProp[(this->dataBase.size() + 1) * sizeof(FileProp)];
+    int i = 0;
+    for_each(this->dataBase.begin(), this->dataBase.end(),
+             [i, fileProps](pair<FileInfo, string> p) mutable -> void {
+                 fileProps[i].setFileName(p.first.name);
+                 fileProps[i].setFileOwner(p.first.owner);
+                 fileProps[i].setFileContent(&p.second[0]);
+                 ++i;
+             }
 
+    );
+    return fileProps;
 }
 
-int DataBase::creat(const FileProp &fp) {
-    if (any_of(this->dataBase.begin(), this->dataBase.end(),
-               [&fp](pair<FileInfo, string> p) { return strcmp(p.first.name, fp.fileName) == 0; }))
-        throw "file already exits in the database! abort adding!!";
-    this->dataBase.insert(pair<FileInfo, string>(*propToInfo(fp, true), fp.fileContent));
+int DataBase::creat(const FileProp *fp) {
+    if (doesFileExist(fp)) throw "file already exits in the database! abort adding!!";
+    FileInfo fi(fp, true);
+    this->dataBase.insert(pair<FileInfo, string>(fi, fp->getFileContent()));
     return 0;
 }
 
 
-int DataBase::read(FileProp &fp) const {
+int DataBase::read(FileProp *fp) const {
     auto it = find_if(this->dataBase.begin(), this->dataBase.end(),
-                      [=](const pair<FileInfo, string> &p) -> bool {
-                          return *propToInfo(fp, 0) == p.first;
+                      [&fp](pair<FileInfo, string> p) -> bool {
+                          return strcmp(p.first.name, fp->getFileName()) == 0 &&
+                                 strcmp(p.first.owner, fp->getFileOwner()) == 0;
                       });
     if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
-    strncpy(&fp.fileContent[0], &it->second[0], CONTENT_SIZE);
+    strncpy(fp->getFileContentNonConst(), &it->second[0], CONTENT_SIZE);
     return 0;
 }
 
-int DataBase::write(const FileProp &fp) {
+int DataBase::write(const FileProp *fp) {
     //finds the iterator contains the needed information, and makes sure the owner is
     auto it = find_if(this->dataBase.begin(), this->dataBase.end(),
-                      [=](const pair<FileInfo, string> &p) -> bool {
-                          return *propToInfo(fp, 0) == p.first;
+                      [&fp](pair<FileInfo, string> p) -> bool {
+                          return strcmp(p.first.name, fp->getFileName()) == 0 &&
+                                 strcmp(p.first.owner, fp->getFileOwner()) == 0;
                       });
     if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
     this->dataBase.erase(it);
@@ -122,14 +128,27 @@ int DataBase::write(const FileProp &fp) {
     return 0;
 }
 
-int DataBase::deleteObj(const FileProp &fp) {
+int DataBase::deleteObj(const FileProp *fp) {
     //finds the iterator contains the needed information, and makes sure the owner is
     auto it = find_if(this->dataBase.begin(), this->dataBase.end(),
-                      [=](const pair<FileInfo, string> &p) -> bool {
-                          return *propToInfo(fp, 0) == p.first;
+                      [&fp](pair<FileInfo, string> p) -> bool {
+                          return strcmp(p.first.name, fp->getFileName()) == 0 &&
+                                 strcmp(p.first.owner, fp->getFileOwner()) == 0;
                       });
-    if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
+    if (it == this->dataBase.end())
+        throw "ether the file doesn't exist or you are not allowed to read it!";
     this->dataBase.erase(it);
     return 0;
 }
+
+bool DataBase::doesFileExist(const FileProp *fp) const {
+    return any_of(this->dataBase.begin(), this->dataBase.end(),
+                  [&fp](pair<FileInfo, string> p) -> bool {
+                      return strcmp(p.first.name, fp->getFileName()) == 0 &&
+                             strcmp(p.first.owner, fp->getFileOwner()) == 0;
+                  });
+}
+
+
+
 

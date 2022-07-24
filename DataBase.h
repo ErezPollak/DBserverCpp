@@ -24,9 +24,18 @@ class DataBase {
      */
     struct FileInfo {
         char name[NAME_SIZE];
-        char owner[OWNERR_SIZE];
+        char owner[OWNER_SIZE];
         int length;
-        bool isChanged;
+        bool isChanged = 0;
+
+        FileInfo() {}
+
+        FileInfo(const FileProp *fp, const bool isCreated) {
+            strncpy(this->name, fp->getFileName(), NAME_SIZE);
+            strncpy(this->owner, fp->getFileOwner(), OWNER_SIZE);
+            this->length = strlen(fp->getFileContent()) + 1;
+            this->isChanged = isCreated;
+        }
 
         //needed for the "find" algorithm.
         bool operator==(const FileInfo &f) const {
@@ -66,7 +75,7 @@ public:
      * @param fp the File Prop object to update.
      * @return 0 if the function succeeded.
      */
-    int read(FileProp &fp) const;
+    int read(FileProp *fp) const;
 
     /**
      * the write function, deletes the old information from the map.
@@ -74,41 +83,48 @@ public:
      * @param fp the new data.
      * @return 0 if the operation succeeded.
      */
-    int write(const FileProp &fp);
+    int write(const FileProp *fp);
 
     /**
      * creating a new file with the given information.
      * @param fp the information about the file.
      * @return 0 if the operation ended successfully.
      */
-    int creat(const FileProp &fp);
+    int creat(const FileProp *fp);
 
     /**
      * deleting an object from the database.
      * @param fp the object to delete.
      * @return 0 if the operation succeeded.
      */
-    int deleteObj(const FileProp &fp);
+    int deleteObj(const FileProp *fp);
 
     /**
-     * prints the database.
+     * updates the given addresses to be the addresses of the sise and array of all the databese data.
+     * @param fileProps the address of the array with all the data.
+     * @param size  the size of the array.
+     * @return 0 if the operation completed.
      */
-    void printDB();
+    FileProp *returnDBState(int &size) const;
 
     /**
      * write to the files all the changes that were made from the last clear.
      */
     void clearDB();
 
-private:
+    /**
+     * prints the database.
+     */
+    void printDB() const;
 
     /**
-     * translates the given structure into the database structure.
-     * @param fp the given data base from the outer world.
-     * @param isCreated the parameter that says if the structure was changed.
-     * @return the database datastructures.
+     * return whether or not the file exist.
+     * @param fp the file properties for check.
+     * @return true or false according to the existence of the file.
      */
-    FileInfo *propToInfo(const FileProp &fp, const bool &isCreated) const;
+    bool doesFileExist(const FileProp *fp) const;
+
+private:
 
     /**
      * writing the data to a file from the data base.
