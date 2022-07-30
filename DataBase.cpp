@@ -4,6 +4,27 @@
 
 #include "DataBase.h"
 
+#pragma region Singelton
+
+
+DataBase *DataBase::dataBaseInstance = nullptr;
+
+/**
+ * Static methods should be defined outside the class.
+ */
+DataBase *DataBase::GetInstance() {
+    /**
+     * This is a safer way to create an instance. instance = new Singleton is
+     * dangerous in case two instance threads wants to access at the same time
+     */
+    if (dataBaseInstance == nullptr) {
+        dataBaseInstance = new DataBase();
+    }
+    return dataBaseInstance;
+}
+
+#pragma endregion
+
 DataBase::DataBase() {
     ifstream infoFile(DB_PATH + DB_infoFile, ios::binary);
     if (!infoFile)throw "cant open info file!";
@@ -80,16 +101,17 @@ void DataBase::printDB() const {
 }
 
 
-FileProp * DataBase::returnDBState(int &size) const {
-    size = dataBase.size();
-    FileProp * fileProps = new FileProp[(this->dataBase.size() + 1) * sizeof(FileProp)];
-    int i = 0;
+FileProp *DataBase::returnDBState(const string &owner, int &size) const {
+    FileProp *fileProps = new FileProp[this->dataBase.size() * sizeof(FileProp)];
+    size = 0;
     for_each(this->dataBase.begin(), this->dataBase.end(),
-             [i, fileProps](pair<FileInfo, string> p) mutable -> void {
-                 fileProps[i].setFileName(p.first.name);
-                 fileProps[i].setFileOwner(p.first.owner);
-                 fileProps[i].setFileContent(&p.second[0]);
-                 ++i;
+             [&size, &owner, fileProps](pair<FileInfo, string> p) mutable -> void {
+                if (strcmp(&owner[0] , p.first.owner) == 0) {
+                     fileProps[size].setFileName(p.first.name);
+                     fileProps[size].setFileOwner(p.first.owner);
+                     fileProps[size].setFileContent(&p.second[0]);
+                     ++size;
+                 }
              }
 
     );
@@ -97,7 +119,7 @@ FileProp * DataBase::returnDBState(int &size) const {
 }
 
 int DataBase::creat(const FileProp *fp) {
-    if (doesFileExist(fp)) throw "file already exits in the database! abort adding!!";
+    if (doesFileExist(fp)) throw "ERROR: DB: file already exits in the database! abort adding!!";
     FileInfo fi(fp, true);
     this->dataBase.insert(pair<FileInfo, string>(fi, fp->getFileContent()));
     return 0;
@@ -110,7 +132,7 @@ int DataBase::read(FileProp *fp) const {
                           return strcmp(p.first.name, fp->getFileName()) == 0 &&
                                  strcmp(p.first.owner, fp->getFileOwner()) == 0;
                       });
-    if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
+    if (it == this->dataBase.end())throw "ERROR: DB: ether the file doesn't exist or you are not allowed to read it!";
     strncpy(fp->getFileContentNonConst(), &it->second[0], CONTENT_SIZE);
     return 0;
 }
@@ -122,7 +144,7 @@ int DataBase::write(const FileProp *fp) {
                           return strcmp(p.first.name, fp->getFileName()) == 0 &&
                                  strcmp(p.first.owner, fp->getFileOwner()) == 0;
                       });
-    if (it == this->dataBase.end())throw "ether the file doesn't exist or you are not allowed to read it!";
+    if (it == this->dataBase.end())throw "ERROR: DB: ether the file doesn't exist or you are not allowed to read it!";
     this->dataBase.erase(it);
     creat(fp);
     return 0;
@@ -136,7 +158,7 @@ int DataBase::deleteObj(const FileProp *fp) {
                                  strcmp(p.first.owner, fp->getFileOwner()) == 0;
                       });
     if (it == this->dataBase.end())
-        throw "ether the file doesn't exist or you are not allowed to read it!";
+        throw "ERROR: DB: ether the file doesn't exist or you are not allowed to read it!";
     this->dataBase.erase(it);
     return 0;
 }

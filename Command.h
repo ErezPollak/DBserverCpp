@@ -14,16 +14,20 @@ const int RECEIVE_MESSAGE_LENGTH = 1024;
 const int COMMAND_SIZE = 20;
 
 enum CommandType {
-    CREAT_DEFAULT, CREATE_INPUT, READ, WRITE, RESET, DELETE, ERROR
+    CREATE, READ, WRITE, DELETE, ALL, SIZES, ERROR
 };
 
+
 class Command {
+
     string name = "";
     string owner = "";
-    string state = "";
+    string payload = "";
     string command = "";
 
     CommandType type;
+
+
 public:
 
     Command(const char *commandBuff);

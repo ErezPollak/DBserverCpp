@@ -13,7 +13,7 @@ class Cube {
 public:
     /**
      * the main function of this layer and its only endpoint for the api of the data layer.
-     * @param state the state to make the changes on.
+     * @param state the payload to make the changes on.
      * @param operation  the operation to make.
      * @return 0 if succeeded and 1 if not.
      */
@@ -25,7 +25,7 @@ private:
 
     /**
      * make use of both the helper functions and performs a complete move of the cube.
-     * @param state the state to make the move on.
+     * @param state the payload to make the move on.
      * @param side the side on the cube to make the move on.
      * @return
      */
@@ -35,7 +35,7 @@ private:
 
     /**
      * rotate only the side of the cube. the side itself.
-     * @param state the state to move.
+     * @param state the payload to move.
      * @param side the side move.
      * @return 0 if succeeded, 1 if not.
      */
@@ -43,7 +43,7 @@ private:
 
     /**
      * moves the edge around the side itself.
-     * @param state the state to make the change on.
+     * @param state the payload to make the change on.
      * @param side the side to move its edge.
      * @return
      */
@@ -67,7 +67,7 @@ private:
 
     /**
      * the array that contains for every side of the cubes what sides we need to move and with what index in them we need to start moving the chars.
-     * the information represented by the index on the state array to start the moving from.
+     * the information represented by the index on the payload array to start the moving from.
      */
     static int edgeMovement[6][4];
 };

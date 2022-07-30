@@ -10,10 +10,15 @@
 #include "Command.h"
 
 class BL {
-    DataBase dataBase;
+    DataBase *dataBase;
 public:
-    FileProp* operateCommand(const char* buff );
-    FileProp * dataBaseState(int& size) const;
+
+    BL();
+
+    ~BL();
+
+    int operateCommand(const char *commandBuff ,char*& response, int& responseSize);
+
 private:
 
 };

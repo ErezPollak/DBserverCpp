@@ -4,13 +4,22 @@
 
 #include "Command.h"
 
+static const map<string , CommandType> DICTIONARY = {
+        {"all", CommandType::ALL},
+        {"sizes", CommandType::SIZES},
+        {"delete",CommandType::DELETE},
+        {"read",CommandType::READ},
+        {"write",CommandType::WRITE},
+        {"create", CommandType::CREATE}
+};
+
 
 Command::Command(const char *commandBuff) {
     char commandCpy[RECEIVE_MESSAGE_LENGTH];
     strncpy(commandCpy, commandBuff, RECEIVE_MESSAGE_LENGTH);
     char *ptr; // declare a ptr pointer
     ptr = strtok(commandCpy, ","); // use strtok() function to separate string using comma (,) delimiter.
-    cout << "\nSplit string using strtok() function: " << endl;
+    cout << "\nCommand: " << endl;
     // use while loop to check ptr is not null
     while (ptr != NULL) {
         switch (ptr[0]) {
@@ -30,16 +39,17 @@ Command::Command(const char *commandBuff) {
             }
                 break;
             case 's': {
-                cout << "state: " << &ptr[1] << endl;
-                this->state = &ptr[1];
+                cout << "payload: " << &ptr[1] << endl;
+                this->payload = &ptr[1];
             }
                 break;
             default: {
-                throw "not a correct state. problem with one of the headers.";
+                throw "not a correct payload. problem with one of the headers.";
             }
         }
         ptr = strtok(NULL, " , ");
     }
+    cout << endl;
 }
 
 const string &Command::getName() const {
@@ -51,7 +61,7 @@ const string &Command::getOwner() const {
 }
 
 const string &Command::getState() const {
-    return this->state;
+    return this->payload;
 }
 
 CommandType Command::getType() const {
@@ -59,15 +69,20 @@ CommandType Command::getType() const {
 }
 
 CommandType Command::recognizeType(const bool &doesFileExist) {
-    if (this->command == "delete")return DELETE;
-    if (this->command == "reset")return RESET;
-    if (doesFileExist) {
-        return this->state == "" ? READ :
-               isState(&this->state[0]) ? WRITE : ERROR;
-    } else {
-        return this->state == "" ? CREAT_DEFAULT :
-               isState(&this->state[0]) ? CREATE_INPUT : ERROR;;
-    }
+
+    return DICTIONARY.at(this->command);
+
+//    if (this->command == "sizes") return SIZES;
+//    if (this->command == "all")return ALL;
+//    if (this->command == "delete")return DELETE;
+//    if (this->command == "reset")return RESET;
+//    if (doesFileExist) {
+//        return this->payload == "" ? READ :
+//               isState(&this->payload[0]) ? WRITE : ERROR;
+//    } else {
+//        return this->payload == "" ? CREAT_DEFAULT :
+//               isState(&this->payload[0]) ? CREATE_INPUT : ERROR;;
+//    }
 }
 
 bool Command::isState(const char *str) {

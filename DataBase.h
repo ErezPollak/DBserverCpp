@@ -58,12 +58,41 @@ private:
      * then it extracts the information from all the files indicated in the db data file.
      */
     map<FileInfo, string> dataBase;
-public:
+
+#pragma region Singelton
+
+
     /**
      * ctor of the class, first extract all the information from the db info file,
      * then go over the files and extract the information from every file.
      */
     DataBase();
+
+    /**
+     * the instance of the database.
+     */
+    static DataBase *dataBaseInstance;
+
+public:
+    /**
+     * Database should not be cloneable.
+     */
+    DataBase(DataBase &db) = delete;
+
+    /**
+     * Database should not be assignable.
+     */
+    void operator=(const DataBase &) = delete;
+
+    /**
+     * This is the static method that controls the access to the singleton
+     * instance. On the first run, it creates a singleton object and places it
+     * into the static field. On subsequent runs, it returns the client existing
+     * object stored in the static field.
+     */
+    static DataBase *GetInstance();
+
+#pragma endregion
 
     /**
      * go over the files and write to the disk every changed file.
@@ -105,7 +134,7 @@ public:
      * @param size  the size of the array.
      * @return 0 if the operation completed.
      */
-    FileProp *returnDBState(int &size) const;
+    FileProp *returnDBState(const string &owner, int &size) const;
 
     /**
      * write to the files all the changes that were made from the last clear.

@@ -5,84 +5,89 @@
 #include "BL.h"
 #include "Cube.h"
 
-FileProp *BL::operateCommand(const char *buff) {
-    Command command(buff);
+BL::BL() : dataBase(DataBase::GetInstance()) {}
+
+BL::~BL() {
+    delete this->dataBase;
+}
+
+int BL::operateCommand(const char *commandBuff, char *&response, int &responseSize) {
+    Command command(commandBuff);
 
     FileProp *fp = new FileProp;
     fp->setFileName(command.getName().c_str())->setFileOwner(command.getOwner().c_str());
 
-    CommandType type = command.recognizeType(this->dataBase.doesFileExist(fp));
+    CommandType type = command.recognizeType(this->dataBase->doesFileExist(fp));
+
+    cout << "type  " << type << endl << endl;
 
     switch (type) {
-        case CREAT_DEFAULT: {
+        case CREATE: {
             strncpy(fp->getFileContentNonConst(), Cube::DEFAULT_CUBE, CONTENT_SIZE);
-            Cube::cubeOperation(fp->getFileContentNonConst(), &command.getCommand()[0]);
             try {
-                this->dataBase.creat(fp);
+                this->dataBase->creat(fp);
             } catch (const char *ch) {
                 throw ch;
             }
+            response = (char *) fp;
+            responseSize = sizeof(FileProp);
             cout << "created default cube and operated successfully" << endl;
-        }
-            break;
-        case CREATE_INPUT: {
-            strncpy(fp->getFileContentNonConst(), command.getState().c_str(), CONTENT_SIZE);
-            Cube::cubeOperation(fp->getFileContentNonConst(), &command.getCommand()[0]);
-            try {
-                this->dataBase.creat(fp);
-            } catch (const char *ch) {
-                throw ch;
-            }
-            cout << "created input cube and operated successfully" << endl;
-
         }
             break;
         case READ: {
             try {
-                this->dataBase.read(fp);
+                this->dataBase->read(fp);
             } catch (const char *ch) {
                 throw ch;
             }
+            response = (char *) fp;
+            responseSize = sizeof(FileProp);
             cout << "read cube successfully" << endl;
         }
             break;
         case WRITE: {
-            strncpy(fp->getFileContentNonConst(), command.getState().c_str(), CONTENT_SIZE);
-            Cube::cubeOperation(fp->getFileContentNonConst(), &command.getCommand()[0]);
+            //strncpy(fp->getFileContentNonConst(), command.getState().c_str(), CONTENT_SIZE);
             try {
-                this->dataBase.write(fp);
+                this->dataBase->read(fp);
+                Cube::cubeOperation(fp->getFileContentNonConst(), &command.getState()[0]);
+                this->dataBase->write(fp);
             } catch (const char *ch) {
                 throw ch;
             }
+            response = (char *) fp;
+            responseSize = sizeof(FileProp);
             cout << "write cube successfully" << endl;
         }
             break;
-        case RESET: {
-            strncpy(fp->getFileContentNonConst(), Cube::DEFAULT_CUBE, CONTENT_SIZE);
-            try {
-                this->dataBase.write(fp);
-            } catch (const char *ch) {
-                throw ch;
-            }
-            cout << "reset cube to default successfully" << endl;
-        }
-            break;
+
         case DELETE: {
             try {
-                this->dataBase.deleteObj(fp);
+                this->dataBase->deleteObj(fp);
             } catch (const char *ch) {
                 throw ch;
             }
+            response = (char *) fp;
+            responseSize = sizeof(FileProp);
             cout << "deleted cube successfully" << endl;
         }
             break;
+        case ALL: {
+            int size = 0;
+            response = (char *) this->dataBase->returnDBState(command.getOwner(), size);
+            responseSize = size * sizeof(FileProp);
+        }
+            break;
+
+        case SIZES: {
+            int *sizes = new int[3]{NAME_SIZE, OWNER_SIZE, (int) strlen(Cube::DEFAULT_CUBE)};
+            response = (char *) sizes;
+            responseSize = 3 * sizeof(int);
+        }
+            break;
+
         case ERROR: {
-            throw "not a recognisable state!";
+            throw "not a recognisable payload!";
         }
     }
-    return fp;
-}
-
-FileProp * BL::dataBaseState(int &size) const {
-    return this->dataBase.returnDBState(size);
+    return 0;
 }

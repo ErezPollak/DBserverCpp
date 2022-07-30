@@ -14,8 +14,7 @@
 
 using namespace std;
 
-const int RETURN_MESSAGE_LENGTH = sizeof(FileProp);
-//const int RECEIVE_MESSAGE_LENGTH = 1024;
+const int RETURN_MESSAGE_LENGTH = 5 * 1024;
 
 int main() {
 
@@ -74,16 +73,16 @@ int main() {
     BL bl;
 
     //send information about the database...
-    cout << "hand-shaking client..." << endl;
-    int size;
-    FileProp *databaseInfo = bl.dataBaseState(size);
-    send(connection, (char *) &size, sizeof(int), 0);
-    send(connection, (char *)&(*databaseInfo), size * sizeof(FileProp), 0);
-    delete[] databaseInfo;
-    cout << "finish hand-shaking client, listening to orders..." << endl;
+    cout << "listening to orders now... " << endl;
+
+    int capacity;
+    char sendBuff[RETURN_MESSAGE_LENGTH] = {0};
 
     //the active session, wait for commands and operates them.
-    while (true) {
+    while (true)
+    {
+        capacity = 0;
+
         char buff[RECEIVE_MESSAGE_LENGTH] = {0};
         int byteReceive = recv(connection, buff, RECEIVE_MESSAGE_LENGTH, 0);
         if (byteReceive == SOCKET_ERROR) {
@@ -94,16 +93,23 @@ int main() {
             cout << "client disconnected !!" << endl;
             break;
         }
-        char sendBuff[RETURN_MESSAGE_LENGTH] = "success!!";
+
         try {
-            FileProp* fp = bl.operateCommand(buff);
-            memcpy(sendBuff, (char*)&(*fp), RETURN_MESSAGE_LENGTH);
-            delete fp;
+
+            char* response = nullptr;
+            bl.operateCommand(buff , response , capacity);
+            memcpy(sendBuff, response, capacity);
+            cout << "sending back: " << sendBuff << ",  with size " << capacity << endl;
+
         } catch (const char *c) {
-            strncpy(sendBuff, c, RETURN_MESSAGE_LENGTH);
+            cout << "sending error back: " << c << endl;
+            capacity = strlen(c);
+            strncpy(sendBuff, c, capacity);
         }
-        cout << "sending back: " << sendBuff << endl;
-        send(connection, sendBuff, RETURN_MESSAGE_LENGTH + 1, 0);
+
+
+        send(connection, (char*)&capacity, 4, 0);
+        send(connection, sendBuff, capacity, 0);
     }
 
 
