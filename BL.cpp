@@ -63,6 +63,7 @@ int BL::operateCommand(const char *commandBuff, char *&response, int &responseSi
         case DELETE: {
             try {
                 this->dataBase->deleteObj(fp);
+                fp->setFileContent("deleted!!");
             } catch (const char *ch) {
                 throw ch;
             }
@@ -79,7 +80,7 @@ int BL::operateCommand(const char *commandBuff, char *&response, int &responseSi
             break;
 
         case SIZES: {
-            int *sizes = new int[3]{NAME_SIZE, OWNER_SIZE, (int) strlen(Cube::DEFAULT_CUBE)};
+            int *sizes = new int[3]{NAME_SIZE, OWNER_SIZE, CONTENT_SIZE};
             response = (char *) sizes;
             responseSize = 3 * sizeof(int);
         }
